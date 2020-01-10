@@ -1,9 +1,11 @@
 #! /usr/bin/python3
 
 '''
-This file contains Joystick example code for controlling PiArm
+Source code : Joystick example code for controlling PiArm
 Developed by - SB Components
 http://sb-components.co.uk
+
+Re-implemented joystick code
 '''
 
 import re
@@ -21,12 +23,12 @@ class Joystick_Controller(object):
         self.joystick_keypress_status = False
         self.step = 50
         self.servo_position = {
-                 1: 500,
+                 1: 750,
                  2: 500,
-                 3: 500,
-                 4: 500,
-                 5: 500,
-                 6: 500,
+                 3: 700,
+                 4: 700,
+                 5: 200,
+                 6: 800,
             }
         self.button_status = {
                      0: 0,
@@ -35,7 +37,7 @@ class Joystick_Controller(object):
                      3: 0,
                      4: 0,
                      5: 0,
-                     6: 0,
+                     6: 0
             }
 
         #  Initialize Joystick
@@ -43,7 +45,9 @@ class Joystick_Controller(object):
         try:
             self.controller = pygame.joystick.Joystick(0)
             self.controller.init()
-            print('Joystick initialized')
+            print('Joystick initialized') 
+            print('axes:',self.controller.get_numaxes())
+
         except pygame.error as pygame_err:
             print(pygame_err)
         self.read_servo_position()
@@ -56,19 +60,29 @@ class Joystick_Controller(object):
         """
         while True:
             for event in pygame.event.get():
+            
+                
                 #  Button Pressed
                 if event.type == pygame.JOYBUTTONDOWN:
                     # set Servo to default
                     if event.button == 9:
                         if robot.alive:
                             for ID in range(1, 7):
-                                self.servo_position[ID] = 500
+                                #self.servo_position[ID] = 500
+                                self.servo_position = {
+                                    1: 750,
+                                    2: 500,
+                                    3: 700,
+                                    4: 700,
+                                    5: 200,
+                                    6: 800,
+                                    }
                                 robot.servoWrite(ID, self.servo_position[ID], 1500)
                         else:
                             print('Comm port is not conected')
 
                     # keypress
-                    elif event.button in range(7):
+                    elif event.button in range(13):
                         self.button_status[event.button] = 1
                         print('button {} pressed: '.format(event.button),
                                      self.button_status[event.button])        
@@ -76,11 +90,20 @@ class Joystick_Controller(object):
 
                 #  Button Released
                 elif event.type == pygame.JOYBUTTONUP:
-                    if event.button in range(7):
+                    if event.button in range(13):
                         self.button_status[event.button] = 0
                         print('button {} released: '.format(event.button), 
                                      self.button_status[event.button])
-
+                    
+                    
+                elif event.type == pygame.JOYAXISMOTION:
+                    horiz_axis_pos = self.controller.get_axis(0)
+                    vert_axis_pos = self.controller.get_axis(1)
+                    
+                    x_coord = self.servo_position[6] + int(horiz_axis_pos * 10)
+                    y_coord = self.servo_position[4] + int(vert_axis_pos * 10)
+ 
+                        
                 #  If facing buttons are pressed reset button position 
                 if self.button_status[0] == self.button_status[2]:
                     self.button_status[0] = 0
@@ -98,7 +121,7 @@ class Joystick_Controller(object):
                             self.servo_position[5] -= self.step
                         if self.servo_position[4] + self.step in range(1, 999):
                             self.servo_position[4] += (self.step + 20)
-                        if self.servo_position[3] - self.step in range(52, 970):
+                        if self.servo_position[3] - self.step in range(400, 970):
                             self.servo_position[3] -= (self.step + 40)
 
                     #  Move Left
@@ -112,7 +135,7 @@ class Joystick_Controller(object):
                             self.servo_position[5] += self.step
                         if self.servo_position[4] - self.step in range(1, 999):
                             self.servo_position[4] -= (self.step + 20)
-                        if self.servo_position[3] + self.step in range(52, 970):
+                        if self.servo_position[3] + self.step in range(400, 970):
                             self.servo_position[3] += (self.step + 40)
 
                     #  Move Right
@@ -129,6 +152,17 @@ class Joystick_Controller(object):
                     elif button == 5:
                         if self.servo_position[1] + self.step in range(144, 710):
                             self.servo_position[1] += (self.step + 20)
+                    
+                    # Move Forward
+                    elif button == 6:
+                        if self.servo_position[5] + self.step in range(10, 999):
+                            self.servo_position[5] -= self.step
+                            
+                     #Move backward
+                    elif button == 7:
+                        if self.servo_position[5] - self.step in range(10, 999):
+                            self.servo_position[5] += self.step
+                            
                     self.joystick_keypress_status = True
 
             #  Write current positions
@@ -170,7 +204,7 @@ if __name__ == "__main__":
     robot = piarm.PiArm()
     # write your serial comm
     robot.connect("/dev/ttyAMA0")
-    joystick = Joystick_Controller()
+    joystick = Joystick_Controller()                                                                                                                                                         
     #  Start Joystick
     try:
         joystick.listen()
