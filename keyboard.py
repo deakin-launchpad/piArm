@@ -1,19 +1,7 @@
-
-
 import re
 import pygame
 import piarm
 from time import sleep
-
-
-from flask import Flask, request
-app = Flask(__name__)
-
-@app.route('/input')
-def web_input():
-    
-    return "HEllo WOrld" + request.args['name']
-    
 
 class Keyboard(object):
 
@@ -30,7 +18,9 @@ class Keyboard(object):
                  6: 800,
             }
         
-        pygame.init()     
+        pygame.init()
+        
+        
 
         #  Initialize Keyboard
         
@@ -47,7 +37,7 @@ class Keyboard(object):
         win = pygame.display.set_mode((500,500))
         pygame.display.set_caption("PiArm")
         
-        # initialize keyboard instruction
+        #Initialize keyboard instruction
         run = True
         while run:
             for event in pygame.event.get():
@@ -176,8 +166,6 @@ class Keyboard(object):
         
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
-    """"
     robot = piarm.PiArm()
     # write your serial comm
     robot.connect("/dev/ttyAMA0")
@@ -186,4 +174,3 @@ if __name__ == "__main__":
     keyboard.listen()
     
     pygame.quit()
-    """
